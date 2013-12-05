@@ -1,6 +1,7 @@
 # Present
 
-TODO: Write a gem description
+[![Build Status](https://travis-ci.org/coderly/code.png?branch=master)](https://travis-ci.org/coderly/code)
+[![Code Climate](https://codeclimate.com/repos/52a0a88e7e00a406ae01ed14/badges/8839d666caf1d188be12/gpa.png)](https://codeclimate.com/repos/52a0a88e7e00a406ae01ed14/feed)
 
 ## Installation
 
