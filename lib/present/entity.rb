@@ -6,8 +6,8 @@ module Present
         objects = object
         objects.map { |o| represent(o, options) }
       else
-        presentable = new(object, options)
-        presentable.nil? ? nil : presentable.serializable_hash
+        entity = new(object, options)
+        entity.nil? ? nil : entity.serializable_hash
       end
     end
 
