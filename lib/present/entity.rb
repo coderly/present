@@ -48,6 +48,14 @@ module Present
       options.include? property
     end
 
+    def current_user
+      env['auth.current_user']
+    end
+
+    def env
+      options[:env] || {}
+    end
+
     private
 
     def read_attribute(name)
