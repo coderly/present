@@ -2,8 +2,6 @@ require 'present/exposure'
 require 'present/exposure_set'
 require 'present/serializer'
 
-require 'pry'
-
 module Present
   class Entity
 
