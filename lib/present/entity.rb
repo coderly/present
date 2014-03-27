@@ -1,40 +1,10 @@
+require 'present/exposure'
+require 'present/exposure_set'
+
 require 'pry'
 
 module Present
   class Entity
-
-    class ExposureSet
-
-    end
-
-    class MethodExposure
-      def initialize(attribute, options = {})
-        @attribute = attribute
-        @options = options
-      end
-
-      def call(object)
-        if object.is_a? Hash
-          call_single(object)
-        elsif object.respond_to? :map
-          object.map { |o| call_single o }
-        else
-          call_single(object)
-        end
-      end
-
-      def call_single(object)
-        value = object.is_a?(Hash) ? object[ @attribute ] : object.public_send(@attribute)
-
-        if @options.include? :with
-          klass = @options[:with]
-          value = klass.new(value, env: @options[:env])
-        end
-
-        value
-      end
-
-    end
 
     def self.represent(object, options = {})
       if object.respond_to?(:to_ary)
@@ -53,9 +23,9 @@ module Present
       end
 
       attributes.each do |attribute|
-        exposures[attribute] = MethodExposure.new(attribute, options)
+        self.exposures[attribute] = Exposure.new(attribute, options)
         define_method attribute do
-          self.class.get_exposure(attribute).call(object)
+          self.class.exposure_set[attribute].call(object)
         end
       end
     end
@@ -64,23 +34,8 @@ module Present
       @exposures ||= {}
     end
 
-    def self.set_exposure name, exposure
-      name = name.to_sym
-      exposures[name] = exposure
-    end
-
-    def self.get_exposure name
-      if self == Entity
-        MethodExposure.new(attribute)
-      elsif has_exposure? name
-        exposures[name]
-      elsif superclass.has_exposure? name
-        superclass.get_exposure(name)
-      end
-    end
-
-    def self.has_exposure? name
-      exposures.include? name.to_sym
+    def self.exposure_set
+      @exposure_set ||= ExposureSet.new(self)
     end
 
     def self.new(object, options = {})
