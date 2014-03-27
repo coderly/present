@@ -1,3 +1,9 @@
+require 'present/exposure'
+require 'present/exposure_set'
+require 'present/serializer'
+
+require 'pry'
+
 module Present
   class Entity
 
@@ -12,11 +18,25 @@ module Present
     end
 
     def self.expose(*attributes)
+      options = {}
+      if attributes.last.is_a? Hash
+        *attributes, options = *attributes
+      end
+
       attributes.each do |attribute|
+        self.exposures[attribute] = Exposure.new(attribute, options)
         define_method attribute do
-          object.public_send(attribute)
+          self.class.exposure_set[attribute].call(object)
         end
       end
+    end
+
+    def self.exposures
+      @exposures ||= {}
+    end
+
+    def self.exposure_set
+      @exposure_set ||= ExposureSet.new [self, *self.ancestors]
     end
 
     def self.new(object, options = {})
@@ -33,7 +53,12 @@ module Present
     end
 
     def serializable_hash(options = {})
-      attr_pairs = attribute_names.map { |name| [name, read_attribute(name)] }
+      serializer = Serializer.new
+      attr_pairs = attribute_names.map do |name|
+        value = read_attribute(name)
+        value = serializer.serialize(value)
+        [name, value]
+      end
       Hash[ attr_pairs ]
     end
     alias_method :to_h, :serializable_hash

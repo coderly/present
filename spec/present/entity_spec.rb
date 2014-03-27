@@ -29,6 +29,37 @@ module Present
       basic.represent(nil).should be_nil
     end
 
+    describe 'expose with' do
+      let(:basic) do
+        user_entity = Class.new(Entity) do
+          def self.who
+            'user entity'
+          end
+
+          def first_name
+            "<#{object}>"
+          end
+        end
+
+        Class.new(Entity) do
+          def self.who
+            'main entity'
+          end
+
+          expose :user, with: user_entity
+          expose :friends, with: user_entity
+        end
+      end
+
+      it 'should wrap the user with the user_entity' do
+        result = basic.represent({ user: 'jack', friends: ['kate', 'jill'] })
+
+        result[:user][:first_name].should eq '<jack>'
+        result[:friends][0][:first_name].should eq '<kate>'
+        result[:friends][1][:first_name].should eq '<jill>'
+      end
+    end
+
     describe 'presentable that inherits' do
       let(:inherited) do
         Class.new(basic) do
