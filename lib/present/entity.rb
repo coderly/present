@@ -35,7 +35,7 @@ module Present
     end
 
     def self.exposure_set
-      @exposure_set ||= ExposureSet.new(self)
+      @exposure_set ||= ExposureSet.new [self, *self.ancestors]
     end
 
     def self.new(object, options = {})

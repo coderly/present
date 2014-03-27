@@ -3,22 +3,18 @@ require 'present/exposure'
 module Present
   class ExposureSet
 
-    attr_reader :entity_class
+    attr_reader :entity_classes
 
-    def initialize(entity_class)
-      @entity_class = entity_class
+    def initialize(entity_classes)
+      @entity_classes = entity_classes
     end
 
     def [](name)
-      if entity_class.exposures.include? name
-        entity_class.exposures[name]
-      else
-        entity_class.ancestors.each do |klass|
-          if klass == Entity
-            break Exposure.new(name)
-          elsif klass.exposures.include?(name)
-            klass.exposures[name]
-          end
+      entity_classes.each do |klass|
+        if klass == Entity
+          return Exposure.new(name)
+        elsif klass.exposures.include?(name)
+          return klass.exposures[name]
         end
       end
     end
