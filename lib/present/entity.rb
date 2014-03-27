@@ -1,5 +1,40 @@
+require 'pry'
+
 module Present
   class Entity
+
+    class ExposureSet
+
+    end
+
+    class MethodExposure
+      def initialize(attribute, options = {})
+        @attribute = attribute
+        @options = options
+      end
+
+      def call(object)
+        if object.is_a? Hash
+          call_single(object)
+        elsif object.respond_to? :map
+          object.map { |o| call_single o }
+        else
+          call_single(object)
+        end
+      end
+
+      def call_single(object)
+        value = object.is_a?(Hash) ? object[ @attribute ] : object.public_send(@attribute)
+
+        if @options.include? :with
+          klass = @options[:with]
+          value = klass.new(value, env: @options[:env])
+        end
+
+        value
+      end
+
+    end
 
     def self.represent(object, options = {})
       if object.respond_to?(:to_ary)
@@ -12,11 +47,40 @@ module Present
     end
 
     def self.expose(*attributes)
+      options = {}
+      if attributes.last.is_a? Hash
+        *attributes, options = *attributes
+      end
+
       attributes.each do |attribute|
+        exposures[attribute] = MethodExposure.new(attribute, options)
         define_method attribute do
-          object.public_send(attribute)
+          self.class.get_exposure(attribute).call(object)
         end
       end
+    end
+
+    def self.exposures
+      @exposures ||= {}
+    end
+
+    def self.set_exposure name, exposure
+      name = name.to_sym
+      exposures[name] = exposure
+    end
+
+    def self.get_exposure name
+      if self == Entity
+        MethodExposure.new(attribute)
+      elsif has_exposure? name
+        exposures[name]
+      elsif superclass.has_exposure? name
+        superclass.get_exposure(name)
+      end
+    end
+
+    def self.has_exposure? name
+      exposures.include? name.to_sym
     end
 
     def self.new(object, options = {})
@@ -33,7 +97,11 @@ module Present
     end
 
     def serializable_hash(options = {})
-      attr_pairs = attribute_names.map { |name| [name, read_attribute(name)] }
+      attr_pairs = attribute_names.map do |name|
+        value = read_attribute(name)
+        value = value.serializable_hash if value.respond_to?(:serializable_hash)
+        [name, value]
+      end
       Hash[ attr_pairs ]
     end
     alias_method :to_h, :serializable_hash
