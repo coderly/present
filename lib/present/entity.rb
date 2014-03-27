@@ -1,5 +1,6 @@
 require 'present/exposure'
 require 'present/exposure_set'
+require 'present/serializer'
 
 require 'pry'
 
@@ -52,9 +53,10 @@ module Present
     end
 
     def serializable_hash(options = {})
+      serializer = Serializer.new
       attr_pairs = attribute_names.map do |name|
         value = read_attribute(name)
-        value = value.serializable_hash if value.respond_to?(:serializable_hash)
+        value = serializer.serialize(value)
         [name, value]
       end
       Hash[ attr_pairs ]
