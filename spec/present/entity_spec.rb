@@ -78,5 +78,44 @@ module Present
       its(:to_h) { should include :name, :age, :gender }
     end
 
+    context 'when passing in options to represent' do
+      let(:entity_class) do
+        Class.new(Entity) do
+          def food
+            options[:fruit].upcase
+          end
+        end
+      end
+
+      it 'should be assigned to the options variable' do
+        result = entity_class.represent([double], fruit: 'pear')
+        result.should eq [{food: 'PEAR'}]
+      end
+
+    end
+
+    context 'when passing in the current user to the env' do
+      let(:entity_class) do
+        Class.new(Entity) do
+          def username
+            current_user ? current_user.name : 'anonymous'
+          end
+        end
+      end
+
+      it 'should be assigned the current_user properly' do
+        user = Object.new
+        def user.name; "chuck" end
+        env = {'auth.current_user' => user}
+        result = entity_class.represent([double], env: env)
+        result.should eq [{username: 'chuck'}]
+      end
+
+      it 'should not choke when the current user isnt present' do
+        result = entity_class.represent([double])
+        result.should eq [{username: 'anonymous'}]
+      end
+    end
+
   end
 end
