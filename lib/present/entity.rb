@@ -24,7 +24,7 @@ module Present
       attributes.each do |attribute|
         self.exposures[attribute] = Exposure.new(attribute, options)
         define_method attribute do
-          self.class.exposure_set[attribute].call(object)
+          self.class.exposure_set[attribute].call(self)
         end
       end
     end

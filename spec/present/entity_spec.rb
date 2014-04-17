@@ -1,4 +1,5 @@
 require 'present/entity'
+require 'pry'
 
 module Present
   describe Entity do
@@ -39,6 +40,10 @@ module Present
           def first_name
             "<#{object}>"
           end
+
+          def current_user_from_env
+            env['foo-auth.current_user']
+          end
         end
 
         Class.new(Entity) do
@@ -57,6 +62,12 @@ module Present
         result[:user][:first_name].should eq '<jack>'
         result[:friends][0][:first_name].should eq '<kate>'
         result[:friends][1][:first_name].should eq '<jill>'
+      end
+
+      it 'should pass the env down to embedded entities' do
+        env = { 'foo-auth.current_user' => 'Bruce Li'}
+        result = basic.represent({ user: 'jack', friends: ['holly'] }, {env: env})
+        result[:friends][0][:current_user_from_env].should eq 'Bruce Li'
       end
     end
 
