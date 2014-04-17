@@ -128,5 +128,25 @@ module Present
       end
     end
 
+    context 'when presenting a hash' do
+      let(:entity_class) do
+
+        embedded_class = Class.new(Entity) do
+          expose :name, :year
+        end
+
+        Class.new(Entity) do
+          expose :favorite_movie, with: embedded_class
+        end
+      end
+
+      it 'should wrap an embedded hash properly' do
+        result = entity_class.represent(favorite_movie: {name: 'dark knight', year: 2011})
+        result[:favorite_movie][:name].should eq 'dark knight'
+        result[:favorite_movie][:year].should eq 2011
+      end
+
+    end
+
   end
 end

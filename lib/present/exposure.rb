@@ -13,7 +13,9 @@ module Present
 
       value = object.is_a?(Hash) ? object[ attribute ] : object.public_send(attribute)
 
-      if value.respond_to? :map
+      if value.is_a?(Hash)
+        wrap(value, env)
+      elsif value.respond_to? :map
         value.map { |v| wrap(v, env) }
       else
         wrap(value, env)
